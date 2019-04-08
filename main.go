@@ -34,7 +34,8 @@ func linkScrape(url1 string)  string{
 		//if withoutSpaces(strings.ToUpper(linkText)) == "КОНТАКТЫ" || withoutSpaces(strings.ToUpper(linkText))  == "CONTACT" ||withoutSpaces(strings.ToUpper(linkText)) == "KONTAKT" {
 		if (strings.Contains(strings.ToUpper(linkText), "КОНТАКТ") && !strings.Contains(strings.ToUpper(linkText), "ВКОНТАКТ")) ||
 			strings.Contains(strings.ToUpper(linkText), "CONTACT") || strings.Contains(strings.ToUpper(linkText), "JOINDRE") ||
-			strings.Contains(strings.ToUpper(linkText), "KONTAKT") || strings.Contains(strings.ToUpper(linkText), "CONTACTO")  {//link1 = cut(link, 4)
+			strings.Contains(strings.ToUpper(linkText), "KONTAKT") || strings.Contains(strings.ToUpper(linkText), "CONTACTO") ||
+			strings.Contains(strings.ToUpper(linkText), "НАЙТИ") {//link1 = cut(link, 4)
 
 			link1 = condition(link, url1);
 
