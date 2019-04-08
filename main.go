@@ -32,11 +32,16 @@ func linkScrape(url1 string)  string{
 
 		//fmt.Printf("Link #%d: '%s' - '%s'\n", index, linkText, link)
 		//if withoutSpaces(strings.ToUpper(linkText)) == "КОНТАКТЫ" || withoutSpaces(strings.ToUpper(linkText))  == "CONTACT" ||withoutSpaces(strings.ToUpper(linkText)) == "KONTAKT" {
-		if (strings.Contains(strings.ToUpper(linkText), "КОНТАКТ") && !strings.Contains(strings.ToUpper(linkText), "ВКОНТАКТ"))|| strings.Contains(strings.ToUpper(linkText), "CONTACT")	{//link1 = cut(link, 4)
+		if (strings.Contains(strings.ToUpper(linkText), "КОНТАКТ") && !strings.Contains(strings.ToUpper(linkText), "ВКОНТАКТ")) ||
+			strings.Contains(strings.ToUpper(linkText), "CONTACT") || strings.Contains(strings.ToUpper(linkText), "JOINDRE") ||
+			strings.Contains(strings.ToUpper(linkText), "KONTAKT") || strings.Contains(strings.ToUpper(linkText), "CONTACTO")  {//link1 = cut(link, 4)
 
 			link1 = condition(link, url1);
 
-		}else if strings.Contains(strings.ToUpper(link), "CONTACT")||strings.Contains(strings.ToUpper(link), "КОНТАКТ")||strings.Contains(strings.ToUpper(link), "KONTAKT"){
+		}else if strings.Contains(strings.ToUpper(link), "CONTACT")||strings.Contains(strings.ToUpper(link), "КОНТАКТ")||
+			strings.Contains(strings.ToUpper(link), "KONTAKT") ||strings.Contains(strings.ToUpper(link), "ADDRESS") ||
+			strings.Contains(strings.ToUpper(link), "JOINDRE") || strings.Contains(strings.ToUpper(link), "KONTAKTFORMULAR") ||
+			strings.Contains(strings.ToUpper(linkText), "CONTACTO"){
 
 			link1 = condition(link, url1);
 		}
