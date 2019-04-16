@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	_ "os"
+	"regexp"
 	"strings"
 )
 
@@ -17,66 +18,91 @@ type siteRoad struct{
 
 func linkScrape(url1 string)  string{
 
+	rUrl, err := regexp.MatchString(`контакт|\bcontact|joindre|\bkontakt|contacto|contacta|kontakty|info\.html|location`, strings.ToLower(url1))
+
+	defer func() {
+		_check(err)
+	}()
+
+	if rUrl == true {
+		return url1
+	}else {
+
+	doc, err := goquery.NewDocument(url1)
+
+		defer func() {
+			_check(err)
+		}()
+
+	var link1 string
+
+		doc.Find("body a").Each(func(index int, item *goquery.Selection) {
+			linkTag := item
+			link, _ := linkTag.Attr("href")
+			linkText := linkTag.Text()
+
+			r, err := regexp.MatchString(`контакт|\bcontact|joindre|kontakt|contacto|contacta|kontakty`, strings.ToLower(linkText))
+			rLink, err := regexp.MatchString(`контакт|\bcontact|joindre|\bkontakt|contacto|contacta|kontakty`, strings.ToUpper(link))
+
+			defer func() {
+				_check(err)
+			}()
+
+			switch {
+				case r == true:
+					link1 = condition(link, url1)
+				case rLink == true:
+					link1 = condition(link, url1)
+				}
+					})
+
+		return link1
+	}
+}
+
+func exampleLink(url1 string) {
+
 	doc, err := goquery.NewDocument(url1)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var link1 string
-
 	doc.Find("body a").Each(func(index int, item *goquery.Selection) {
+
 		linkTag := item
 		link, _ := linkTag.Attr("href")
 		linkText := linkTag.Text()
 
-		//fmt.Printf("Link #%d: '%s' - '%s'\n", index, linkText, link)
-		//if withoutSpaces(strings.ToUpper(linkText)) == "КОНТАКТЫ" || withoutSpaces(strings.ToUpper(linkText))  == "CONTACT" ||withoutSpaces(strings.ToUpper(linkText)) == "KONTAKT" {
-		if (strings.Contains(strings.ToUpper(linkText), "КОНТАКТ") && !strings.Contains(strings.ToUpper(linkText), "ВКОНТАКТ")) ||
-			strings.Contains(strings.ToUpper(linkText), "CONTACT") || strings.Contains(strings.ToUpper(linkText), "JOINDRE") ||
-			strings.Contains(strings.ToUpper(linkText), "KONTAKT") || strings.Contains(strings.ToUpper(linkText), "CONTACTO") ||
-			strings.Contains(strings.ToUpper(linkText), "НАЙТИ") {//link1 = cut(link, 4)
 
-			link1 = condition(link, url1);
+		r, err := regexp.MatchString(`КОНТАКТ|CONTACT|JOINDRE|KONTAKT|CONTACTO`, strings.ToUpper(linkText))
 
-		}else if strings.Contains(strings.ToUpper(link), "CONTACT")||strings.Contains(strings.ToUpper(link), "КОНТАКТ")||
-			strings.Contains(strings.ToUpper(link), "KONTAKT") ||strings.Contains(strings.ToUpper(link), "ADDRESS") ||
-			strings.Contains(strings.ToUpper(link), "JOINDRE") || strings.Contains(strings.ToUpper(link), "KONTAKTFORMULAR") ||
-			strings.Contains(strings.ToUpper(linkText), "CONTACTO"){
-
-			link1 = condition(link, url1);
+		if err != nil {
+			fmt.Println(err)
 		}
-
-		//if strings.Contains(strings.ToUpper(link), "CONTACT"){
-		//
-		//	link1 = condition(link, url1);
-		//}
-		})
-
-	return link1
-
-}
+		if r != false {
+			fmt.Printf("'%s' - '%s'\n", linkText, url1+link)
+		}else{
+			fmt.Println(r)
+		}
+	})
+	}
 
 func main() {
 
+	//exampleLink("https://www.kaliningradartmuseum.ru/")
+
 	file, err := os.Open("Site.txt")
-	if err != nil {
-		// здесь перехватывается ошибка
-		return
-	}
+	_check(err)
 	defer file.Close()
 
 	// получить размер файла
 	stat, err := file.Stat()
-	if err != nil {
-		return
-	}
+	_check(err)
 	// чтение файла
 	bs := make([]byte, stat.Size())
 	_, err = file.Read(bs)
-	if err != nil {
-		return
-	}
+	_check(err)
 
 	str := string(bs)
 	s := strings.Split(str, "\r\n")
@@ -84,23 +110,44 @@ func main() {
 	var siteRoad1 = siteRoad{url: "", status: true}
 
 	for ii := 0; ii < len(s); ii++ {
-		rEmpty  := linkScrape(s[ii])
-		if rEmpty != ""{
-			siteRoad1.url = rEmpty
-			siteRoad1.status = true
-			fmt.Println(siteRoad1)
-		}else{
-			fmt.Println("false")
+		//exampleLink(s[ii])
+		res, err := regexp.MatchString(`HTTP|HTTPS`, strings.ToUpper(s[ii]))
+		_check(err)
+		if res == true {
+			rEmpty := linkScrape(s[ii])
+			if rEmpty != "" {
+
+				reWiki, err := regexp.MatchString(`wikipedia|contacts.google.com|www.paypal.com|vikidia`, strings.ToLower(rEmpty))
+
+				_check(err)
+
+				if reWiki == true {
+					fmt.Println("false")
+				}else {
+					siteRoad1.url = rEmpty
+					siteRoad1.status = true
+					fmt.Println(siteRoad1)
+				}
+			} else {
+				fmt.Println("false")
+			}
 		}
 	}
 	}
 
 func condition(link string, url1 string) string{
 
-	if cut(link, 4) == "http" {
-		return  link
-	}else {
-		link = url1 + link
+	cutLine := cut(link, 4)
+	switch  {
+	case cutLine == "http": return link
+	case cutLine == "/www": return link
+	case cutLine == "//ww": return link
+	case cutLine == "www.": return link
+	default:
+		re := regexp.MustCompile(".*://|/.*")
+		cleanLink := re.ReplaceAllString(url1, "")
+		//fmt.Println(cleanLink)
+		link = "http://"+cleanLink + "/"+link
 		return  link
 	}
 
@@ -114,4 +161,8 @@ func cut(text string, limit int) string {
 	return text
 }
 
-
+func _check(err error) {
+	if err := recover(); err != nil {
+		fmt.Println(err)
+	}
+}
